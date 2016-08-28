@@ -1,0 +1,64 @@
+- [0 1] 
+	 latestClocks in [] 
+	 latestClocks out [] 
+	 before [] 
+	 immediately [] 
+
+- [1 2] 
+	 latestClocks in [[0 1] [1 0]] 
+		 append [0 1] 
+		 concurrent [0 1] with [1 0] 
+		 append [1 0] 
+	 latestClocks out [[0 1] [1 0]] 
+	 before [[0 1] [1 0]] 
+	 immediately [[0 1] [1 0]] 
+
+- [1 3] 
+	 latestClocks in [[0 1] [1 2] [1 0]] 
+		 append [0 1] 
+		 discard [0 1] is before [1 2] 
+		 append [1 2] 
+		 discard [1 0] happened before [1 2] 
+	 latestClocks out [[1 2]] 
+	 before [[0 1] [1 2] [1 0]] 
+	 immediately [[1 2]] 
+
+- [1 0] 
+	 latestClocks in [] 
+	 latestClocks out [] 
+	 before [] 
+	 immediately [] 
+
+- [2 1] 
+	 latestClocks in [[0 1] [1 0]] 
+		 append [0 1] 
+		 concurrent [0 1] with [1 0] 
+		 append [1 0] 
+	 latestClocks out [[0 1] [1 0]] 
+	 before [[0 1] [1 0]] 
+	 immediately [[0 1] [1 0]] 
+
+- [3 1] 
+	 latestClocks in [[0 1] [1 0] [2 1]] 
+		 append [0 1] 
+		 concurrent [0 1] with [1 0] 
+		 append [1 0] 
+		 discard [0 1] is before [2 1] 
+		 discard [1 0] is before [2 1] 
+		 append [2 1] 
+	 latestClocks out [[2 1]] 
+	 before [[0 1] [1 0] [2 1]] 
+	 immediately [[2 1]] 
+
+digraph {
+  graph [rankdir=LR]
+  node [shape=plaintext]
+  "z\n[3 1]"
+  "a\n[0 1]" -> "b\n[1 2]"
+  "a\n[0 1]" -> "y\n[2 1]"
+  "b\n[1 2]" -> "c\n[1 3]"
+  "x\n[1 0]" -> "b\n[1 2]"
+  "x\n[1 0]" -> "y\n[2 1]"
+  "c\n[1 3]"
+  "y\n[2 1]" -> "z\n[3 1]"
+}

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 PACKAGES="."
-COMMANDS="cmd/*.go"
+COMMANDS="*.go"
 LINTABLE="./logparse ./cmd/sshsessions.go"
 
 set -e

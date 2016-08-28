@@ -181,6 +181,9 @@ func partitionClocks(clocks []VectorClock, clock VectorClock) ([]VectorClock, []
 }
 
 func clockSetRemove(s []VectorClock, index int) []VectorClock {
+
+	//fmt.Printf("clockSetRemove before %d-th of size %v \n", index, s)
+
 	// swap s[index] to the end
 	lastIndex := len(s) - 1
 	if index < lastIndex {
@@ -190,13 +193,20 @@ func clockSetRemove(s []VectorClock, index int) []VectorClock {
 	}
 
 	// remove the end
-	return s[:lastIndex]
+	var after = s[:lastIndex]
+
+	//fmt.Printf("clockSetRemove after %v \n", after)
+
+	return after;
 }
 
 // Returns the clocks that are the "latest" clocks. For all clocks that are returned are concurrent,
 // and are after any of the removed clocks. E.g. if c1 -> c2 then we keep c2.
 // Super inefficient: O(n**2)
 func latestClocks(clocks []VectorClock) []VectorClock {
+
+	fmt.Printf("\t latestClocks in %v \n", clocks)
+
 	var latest []VectorClock
 	for _, c := range clocks {
 		addToLatest := true
@@ -204,19 +214,26 @@ func latestClocks(clocks []VectorClock) []VectorClock {
 			if c.happensBefore(latest[i]) {
 				// discard c: it is before latest[i]
 				addToLatest = false
+				fmt.Printf("\t\t discard %v happened before %v \n", c, latest[i])
 				break
 			} else if latest[i].happensBefore(c) {
 				// discard latest[i]: it is before c
+				fmt.Printf("\t\t discard %v is before %v \n", latest[i],c)
 				latest = clockSetRemove(latest, i)
 				i -= 1
 			} else {
 				assert(latest[i].concurrentWith(c))
+				fmt.Printf("\t\t concurrent %v with %v \n", latest[i],c)
 			}
 		}
 		if addToLatest {
 			latest = append(latest, c)
+			fmt.Printf("\t\t append %v \n", c)
 		}
 	}
+
+	fmt.Printf("\t latestClocks out %v \n", latest)
+
 	return latest
 }
 
@@ -227,17 +244,25 @@ func ClocksToGraph(clocks []VectorClock) *graph {
 	g := newGraph()
 
 	for _, c := range clocks {
+
+		fmt.Printf("- %v \n", c)
+
 		// partition the clocks on this clock: n-1 comparsons
 		before, _, _ := partitionClocks(clocks, c)
 		// find the clocks that are later than all the others: worst case (n**2) comparisons
 		immediatelyBefore := latestClocks(before)
 		// link this clock to all the immediatelyBefore clocks
 
+		fmt.Printf("\t before %v \n", before)
+		fmt.Printf("\t immediately %v \n", immediatelyBefore)
+
 		n := g.findOrAdd(c)
 		for _, previousClock := range immediatelyBefore {
 			other := g.findOrAdd(previousClock)
 			other.addEdge(n)
 		}
+
+		fmt.Printf("\n")
 	}
 	assert(len(g.nodes) == len(clocks))
 	return g
